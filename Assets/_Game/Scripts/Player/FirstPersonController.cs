@@ -19,6 +19,8 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] private Camera mainCamera;
     [SerializeField] private PlayerInputHandler playerInputHandler;
 
+
+    //private variables
     private Vector3 currentMovement;
     private float verticalRotation;
     private float currentSpeed => walkSpeed * (playerInputHandler.sprintTriggered ? sprintMulti : 1);
@@ -28,6 +30,9 @@ public class FirstPersonController : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        //Ensure Camera and character controller are valid
+        CheckReferencesAreValid();
     }
 
     // Update is called once per frame
@@ -37,6 +42,10 @@ public class FirstPersonController : MonoBehaviour
         HandleRotation();
     }
 
+    /// <summary>
+    /// Calculate normalised worled direction
+    /// </summary>
+    /// <returns>current facing world direction normalised</returns>
     private Vector3 CalculateWorldDirection()
     {
         Vector3 inputDirection = new Vector3(playerInputHandler.movementInput.x, 0f, playerInputHandler.movementInput.y);
@@ -44,6 +53,9 @@ public class FirstPersonController : MonoBehaviour
         return worldDirecion.normalized;
     }
 
+    /// <summary>
+    /// Handle Jumping
+    /// </summary>
     private void HandleJumping()
     {
         if (characterController.isGrounded)
@@ -61,6 +73,9 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handle Movement
+    /// </summary>
     private void HandleMovement()
     {
         Vector3 worldDirection = CalculateWorldDirection();
@@ -71,17 +86,29 @@ public class FirstPersonController : MonoBehaviour
         characterController.Move(currentMovement * Time.deltaTime);
     }
 
+    /// <summary>
+    /// Handle rotation
+    /// </summary>
+    /// <param name="rotationAmount"></param>
     private void ApplyHorizontalRotation(float rotationAmount)
     {
         transform.Rotate(0, rotationAmount, 0);
     }
 
+
+    /// <summary>
+    /// Apply vertical rotation
+    /// </summary>
+    /// <param name="rotationAmount">clamped vertical rotation</param>
     private void ApplyVerticalRotation(float rotationAmount)
     {
         verticalRotation = Mathf.Clamp(verticalRotation - rotationAmount, -upDownLookRange, upDownLookRange);
         mainCamera.transform.localRotation = Quaternion.Euler(verticalRotation, 0, 0);
     }
 
+    /// <summary>
+    /// handle rotation
+    /// </summary>
     private void HandleRotation()
     {
         float mouseXRotation = playerInputHandler.rotationInput.x * mouseSensitivity;
@@ -89,5 +116,21 @@ public class FirstPersonController : MonoBehaviour
 
         ApplyHorizontalRotation(mouseXRotation);
         ApplyVerticalRotation(mouseYRotation);
+    }
+
+    /// <summary>
+    /// Check references are valid
+    /// </summary>
+    private void CheckReferencesAreValid()
+    {
+        //check to make sure camera is properly referenced
+        if (mainCamera == null)
+        {
+            mainCamera = GetComponentInChildren<Camera>();
+        }
+        if (characterController == null)
+        {
+            characterController = GetComponent<CharacterController>();
+        }
     }
 }
